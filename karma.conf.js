@@ -4,13 +4,22 @@
 module.exports = function (config) {
   config.set({
     basePath: '',
-    frameworks: ['jasmine', '@angular-devkit/build-angular'],
+    frameworks: ['jasmine', '@angular-devkit/build-angular', 'pact'],
+    pact: [{
+      cors: true,
+      port: 9776,
+      consumer: "some-consumer",
+    	provider: "some-provider",
+      dir: "pact/files/go/here",
+      log: "log/files/go/here"
+    }],
     plugins: [
       require('karma-jasmine'),
       require('karma-chrome-launcher'),
       require('karma-jasmine-html-reporter'),
       require('karma-coverage'),
-      require('@angular-devkit/build-angular/plugins/karma')
+      require('@angular-devkit/build-angular/plugins/karma'),
+      require('@pact-foundation/karma-pact')
     ],
     client: {
       jasmine: {
