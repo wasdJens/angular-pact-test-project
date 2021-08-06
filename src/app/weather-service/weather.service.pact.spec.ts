@@ -9,32 +9,9 @@ import { PactWeb } from '@pact-foundation/pact-web';
 
 describe('WeatherService', () => {
 
-  let provider;
-
-  beforeAll(function (done) {
-    provider = new Pact({
-      consumer: 'angular-frontend',
-      provider: 'producer',
-      port: 1234,
-      host: '127.0.0.1',
-    });
-
-    // required for slower CI environments
-    setTimeout(done, 2000);
-
-    // Required if run with `singleRun: false`
-    provider.removeInteractions();
-  });
-
-  afterAll(function (done) {
-    provider.finalize()
-    .then(function () {
-      done();
-    }, function (err) {
-      done.fail(err);
-    });
-  });
-
+  /**
+   * Angular setup
+   */
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [
@@ -46,16 +23,25 @@ describe('WeatherService', () => {
     });
   });
 
-  afterEach((done) => {
-    provider.verify().then(done, e => done.fail(e));
+  const provider = new Pact({
+    consumer: 'angular-frontend',
+    provider: 'producer',
+    port: 1234,
+    host: '127.0.0.1',
   });
+
+  afterAll(async () => {
+    await provider.finalize();
+  })
 
   describe('Get Weatherforecast', () => {
 
     const expectedForecasts: Array<WeatherForecast> = [];
 
-    beforeAll((done) => {
-      provider.addInteraction({
+    beforeAll(async () => {
+      const test = await provider.setup();
+      console.log(test);
+      await provider.addInteraction({
         state: `the weather API returns the forecast for the next 5 days`,
         uponReceiving: 'a request to get the forecast',
         withRequest: {
@@ -77,8 +63,38 @@ describe('WeatherService', () => {
             'Content-Type': 'application/json'
           }
         }
-      }).then(done, error => done.fail(error));
-    });
+      })
+    })
+
+    afterAll(async () => {
+      await provider.verify();
+    })
+
+    // beforeAll((done) => {
+    //   provider.addInteraction({
+    //     state: `the weather API returns the forecast for the next 5 days`,
+    //     uponReceiving: 'a request to get the forecast',
+    //     withRequest: {
+    //       method: 'GET',
+    //       path: '/weatherforecast',
+    //       headers: {
+    //         'Content-Type': 'application/json'
+    //       }
+    //     },
+    //     willRespondWith: {
+    //       status: 200,
+    //       body: Matchers.eachLike({
+    //           date: Date,
+    //           temperatureC: Number,
+    //           temperatureF: Number,
+    //           summary: "",
+    //       },{min:5}),
+    //       headers: {
+    //         'Content-Type': 'application/json'
+    //       }
+    //     }
+    //   }).then(done, error => done.fail(error));
+    // });
 
     it('should get the next 5 days', (done) => {
       const weatherServicer: WeatherService = TestBed.inject(WeatherService);

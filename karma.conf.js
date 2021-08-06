@@ -7,7 +7,7 @@ module.exports = function (config) {
     frameworks: ['jasmine', '@angular-devkit/build-angular', 'pact'],
     pact: [{
       cors: true,
-      port: 9776,
+      port: 1234,
       consumer: "some-consumer",
     	provider: "some-provider",
       dir: "pact/files/go/here",
@@ -21,6 +21,9 @@ module.exports = function (config) {
       require('@angular-devkit/build-angular/plugins/karma'),
       require('@pact-foundation/karma-pact')
     ],
+    proxies: {
+      '/weatherservice/': 'http://127.0.0.1:1234/weatherservice/'
+    },
     client: {
       jasmine: {
         // you can add configuration options for Jasmine here
@@ -46,7 +49,13 @@ module.exports = function (config) {
     colors: true,
     logLevel: config.LOG_INFO,
     autoWatch: true,
-    browsers: ['Chrome'],
+    browsers: ['ChromeHeadlessNoSandbox'],
+    customLaunchers: {
+      ChromeHeadlessNoSandbox: {
+        base: 'ChromeHeadless',
+        flags: ['--no-sandbox', '--headless', '--disable-dev-shm-usage']
+      }
+    },
     singleRun: false,
     restartOnFileChange: true
   });
